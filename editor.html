@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PR Config Editor</title>
+<style>
+:root{--bg:#13161d;--bg2:#1b1f2c;--bg3:#222840;--bg4:#2b3252;--border:#353c58;--a:#e8992a;--a2:#5b8dee;--t:#c8d0e0;--t2:#6e7c9e;--red:#e05555;--green:#4caf7d;--warn:#d9bc30;--pur:#9b6ee8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--t);font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+#hdr{background:var(--bg2);border-bottom:2px solid var(--a);padding:6px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
+#hdr h1{font-size:14px;font-weight:700;color:var(--a);margin-right:4px;white-space:nowrap}
+.hb{display:flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:11px;color:var(--t2)}
+.hb.ok{border-color:var(--green);color:var(--green)}
+.hb label{cursor:pointer;color:var(--a2);margin-left:2px}
+.hb label:hover{text-decoration:underline}
+.hb input[type=file]{display:none}
+.sp{flex:1}
+.btn{background:var(--bg3);border:1px solid var(--border);color:var(--t);padding:3px 10px;border-radius:4px;cursor:pointer;font-size:11px;white-space:nowrap;transition:.15s}
+.btn:hover{background:var(--bg4);border-color:var(--a2)}
+.btn.A{background:var(--a);color:#1a0800;border-color:var(--a);font-weight:700}
+.btn.A:hover{filter:brightness(1.1)}
+.btn.sm{padding:2px 7px;font-size:11px}
+.btn.D{color:var(--red);border-color:var(--red)}
+.btn.D:hover{background:var(--red);color:#fff}
+.btn.G{color:var(--green);border-color:var(--green)}
+#tabs{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;flex-shrink:0;padding:0 6px}
+.tab{padding:8px 14px;cursor:pointer;border-bottom:2px solid transparent;color:var(--t2);font-size:12px;font-weight:600;transition:.15s;margin-bottom:-1px}
+.tab.on{color:var(--t);border-bottom-color:var(--a)}
+.tab:hover:not(.on){color:var(--t);background:rgba(255,255,255,.03)}
+#cont{flex:1;overflow:hidden;display:flex}
+.tp{display:none;flex:1;overflow:hidden;flex-direction:column}
+.tp.on{display:flex}
+.cols{display:flex;flex:1;overflow:hidden}
+.cA{width:175px;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0}
+.cB{width:165px;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0}
+.cM{flex:1;overflow-y:auto;padding:12px}
+.sg{padding:7px 8px 2px;font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.8px}
+.si{padding:5px 12px;cursor:pointer;border-left:3px solid transparent;font-size:12px;color:var(--t2);transition:.1s;line-height:1.4}
+.si:hover{color:var(--t);background:rgba(255,255,255,.04)}
+.si.on{color:var(--a);border-left-color:var(--a);background:var(--bg3)}
+/* cards */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:10px}
+.ch{padding:7px 12px;display:flex;align-items:center;gap:8px;background:var(--bg3);border-bottom:1px solid var(--border);border-radius:6px 6px 0 0}
+.ch h3{font-size:12px;font-weight:700;color:var(--t);flex:1}
+.cb{padding:10px 12px}
+/* div cards */
+.dc{background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:10px}
+.dh{background:var(--bg3);padding:6px 10px;border-radius:6px 6px 0 0;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.dh h4{font-size:12px;font-weight:700;color:var(--a)}
+.db{padding:10px}
+/* fields */
+.fr{display:flex;align-items:center;gap:7px;margin-bottom:5px;flex-wrap:wrap}
+.fr label{font-size:11px;color:var(--t2);min-width:88px;flex-shrink:0}
+input[type=text],input[type=number],select{background:var(--bg);border:1px solid var(--border);color:var(--t);padding:3px 7px;border-radius:3px;font-size:12px}
+input:focus,select:focus{outline:none;border-color:var(--a2)}
+select{background:var(--bg)}
+/* chance */
+.cr_{display:flex;align-items:center;gap:5px}
+input[type=range]{width:75px;accent-color:var(--a);cursor:pointer}
+.cn{font-weight:700;font-size:12px;min-width:30px;text-align:right}
+.cn.ok{color:var(--green)}.cn.bad{color:var(--red)}.cn.wn{color:var(--warn)}
+.stot{font-size:10px;padding:1px 6px;border-radius:3px;background:var(--bg3)}
+.stot.ok{color:var(--green)}.stot.bad{color:var(--red)}.stot.wn{color:var(--warn)}
+/* section labels */
+.sl{font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:7px;margin:8px 0 4px}
+/* item rows */
+.il{display:flex;flex-direction:column;gap:3px;margin-bottom:4px}
+.ir{display:flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:4px 7px;flex-wrap:wrap}
+.ir .nm{flex:1;min-width:130px}
+.ir .nm input{width:100%;background:transparent;border:none;color:var(--t);font-size:12px;outline:none;border-bottom:1px solid transparent}
+.ir .nm input:focus{border-bottom-color:var(--a2)}
+/* zones */
+.zl{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 6px}
+.zt{background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:2px 8px;font-size:11px;display:flex;align-items:center;gap:4px}
+.zt button{background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;padding:0}
+/* modals */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:100;align-items:center;justify-content:center}
+.ov.on{display:flex}
+.mo{background:var(--bg2);border:1px solid var(--border);border-radius:8px;width:680px;max-height:84vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.7)}
+.mh{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.mh h2{flex:1;font-size:14px;color:var(--a)}
+.mb{overflow-y:auto;padding:14px 16px;flex:1}
+.mf{padding:10px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+/* EUP presets */
+.preset-row{display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:4px;cursor:pointer;border:1px solid transparent}
+.preset-row:hover{background:var(--bg3);border-color:var(--border)}
+.preset-row.sel{background:var(--bg4);border-color:var(--a2)}
+/* comp grid */
+.cgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.cf{display:flex;flex-direction:column;gap:2px}
+.cf label{font-size:10px;color:var(--t2)}
+.cf input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--t);padding:3px 6px;border-radius:3px;font-size:12px}
+/* vehicle browser panel */
+#vbPanel{display:none;position:fixed;top:0;right:0;width:320px;height:100%;background:var(--bg2);border-left:1px solid var(--border);z-index:200;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.5)}
+#vbPanel.on{display:flex}
+#vbPanel .hd{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+#vbPanel .hd h3{flex:1;font-size:13px;color:var(--a)}
+#vbPanel .filters{padding:8px 10px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:5px}
+#vbPanel .vlist{flex:1;overflow-y:auto;padding:6px}
+.vi{padding:5px 9px;border-radius:4px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:6px;border:1px solid transparent}
+.vi:hover{background:var(--bg3);border-color:var(--border)}
+.vi .vn{font-weight:600;flex:1}
+.vi .va{font-size:10px;color:var(--t2)}
+/* unit names */
+.unc{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:8px 10px;margin-bottom:8px}
+.uncH{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ntags{display:flex;flex-wrap:wrap;gap:4px}
+.ntag{background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:2px 8px;font-size:11px;display:flex;align-items:center;gap:3px}
+.ntag button{background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;padding:0}
+.ai{display:flex;gap:5px;margin-top:6px}
+.ai input{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--t);padding:3px 7px;border-radius:3px;font-size:12px}
+/* flags */
+.flags{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+.fl{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2)}
+.fl input{accent-color:var(--a2)}
+/* EUP match subtitle */
+.eup-sub{font-size:10px;color:var(--a2);opacity:.8;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+/* session restore banner */
+#restoreBanner{display:none;background:var(--bg3);border-bottom:1px solid var(--border);padding:5px 14px;font-size:11px;color:var(--t2);align-items:center;gap:10px;flex-shrink:0}
+#restoreBanner.on{display:flex}
+#restoreBanner b{color:var(--green)}
+/* warn */
+.warn-box{background:rgba(232,153,42,.1);border:1px solid var(--a);border-radius:4px;padding:7px 10px;font-size:11px;color:var(--a);margin-bottom:10px}
+/* notif */
+#notif{position:fixed;bottom:16px;right:16px;background:var(--green);color:#061206;padding:7px 14px;border-radius:5px;font-weight:700;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+#notif.on{opacity:1}
+/* empty */
+.empty{color:var(--t2);font-size:12px;font-style:italic;padding:8px}
+textarea{background:var(--bg);border:1px solid var(--border);color:var(--t);padding:6px 8px;border-radius:4px;font-size:12px;font-family:monospace;resize:vertical;width:100%}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <h1>PR Config Editor</h1>
+  <div class="hb" id="bDR">DefaultRegions<label><input type="file" accept=".xml" id="fDR"> Load</label></div>
+  <div class="hb" id="bCR">CustomRegions<label><input type="file" accept=".xml" id="fCR"> Load</label></div>
+  <div class="hb" id="bSU">SpecialUnits<label><input type="file" accept=".xml" id="fSU"> Load</label></div>
+  <div class="hb" id="bUN">UnitNames<label><input type="file" accept=".xml" id="fUN"> Load</label></div>
+  <div class="hb" id="bVH">Vehicles CSV<label><input type="file" accept=".csv" id="fVH"> Load</label></div>
+  <div class="hb" id="bEUP">EUP Presets<label><input type="file" accept=".ini" id="fEUP"> Load</label></div>
+  <div class="hb" id="bSESS" title="Load a previously saved .json session file">Session<label><input type="file" accept=".json" id="fSESS"> Load</label></div>
+  <div class="sp"></div>
+  <button class="btn G" onclick="saveSession()" title="Save all loaded files and settings to localStorage + download backup">💾 Save</button>
+  <button class="btn" id="settBtn" onclick="openSettings()" title="Global settings">⚙ Settings</button>
+  <button class="btn" onclick="exp('DR')">↓ DefaultRegions</button>
+  <button class="btn" onclick="exp('CR')">↓ CustomRegions</button>
+  <button class="btn" onclick="exp('SU')">↓ SpecialUnits</button>
+  <button class="btn" onclick="exp('UN')">↓ UnitNames</button>
+  <button class="btn A" onclick="expAll()">↓ Export All</button>
+</div>
+
+<div id="restoreBanner">
+  <span>💾 Session restored from <b id="restoreTime"></b></span>
+  <span id="restoreFiles" style="color:var(--t)"></span>
+  <button class="btn sm" onclick="clearSession()" style="margin-left:auto;color:var(--red)">Clear saved</button>
+  <button class="btn sm" onclick="document.getElementById('restoreBanner').classList.remove('on')">✕</button>
+</div>
+<div id="tabs">
+  <div class="tab on" onclick="swTab('DR')">Default Regions</div>
+  <div class="tab" onclick="swTab('CR')">Custom Regions</div>
+  <div class="tab" onclick="swTab('SU')">Special Units</div>
+  <div class="tab" onclick="swTab('UN')">Unit Names</div>
+</div>
+
+<div id="cont">
+
+<!-- DEFAULT REGIONS -->
+<div class="tp on" id="tDR">
+  <div class="cols">
+    <div class="cA" id="drPL"></div>
+    <div class="cB" id="drRL"></div>
+    <div class="cM" id="drM"><div class="empty">Load DefaultRegions.xml, then select a patrol type and region.</div></div>
+  </div>
+</div>
+
+<!-- CUSTOM REGIONS -->
+<div class="tp" id="tCR">
+  <div class="cols">
+    <div class="cA" id="crPL"></div>
+    <div class="cM" id="crM"><div class="empty">Load CustomRegions.xml and select a patrol type.</div></div>
+  </div>
+</div>
+
+<!-- SPECIAL UNITS -->
+<div class="tp" id="tSU">
+  <div class="cols">
+    <div class="cA" style="width:195px" id="suL"></div>
+    <div class="cM" id="suM"><div class="empty">Load SpecialUnits.xml and select a unit.</div></div>
+  </div>
+</div>
+
+<!-- UNIT NAMES -->
+<div class="tp" id="tUN">
+  <div class="cM" style="padding:12px;flex:1;overflow-y:auto" id="unM"><div class="empty">Load CustomUnitNames.xml.</div></div>
+</div>
+
+</div><!-- #cont -->
+
+<!-- PED MODAL -->
+<div class="ov" id="pedMo">
+  <div class="mo" style="width:700px">
+    <div class="mh"><h2>Edit Ped</h2><button class="btn sm" onclick="closePed()">✕</button></div>
+    <div class="mb">
+      <div id="pedWarn"></div>
+      <!-- EUP Presets quick-apply -->
+      <details id="eupDetails" style="margin-bottom:12px">
+        <summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--a2);padding:4px 0">EUP Preset Quick-Apply <span id="eupCnt" style="color:var(--t2);font-weight:400"></span></summary>
+        <div style="padding:8px 0">
+          <div class="fr" style="margin-bottom:6px">
+            <select id="eupGender" onchange="filterEUP()" style="width:110px"><option>Male</option><option>Female</option></select>
+            <select id="eupCat2" onchange="filterEUP()" style="flex:1"></select>
+            <input type="text" id="eupSearch" oninput="filterEUP()" placeholder="Search preset…" style="width:160px">
+          </div>
+          <div id="eupList" style="max-height:160px;overflow-y:auto;border:1px solid var(--border);border-radius:4px;padding:4px"></div>
+        </div>
+      </details>
+      <!-- Basic -->
+      <div class="fr" style="margin-bottom:8px">
+        <label>Ped Model</label>
+        <input type="text" id="pm-model" style="width:230px" placeholder="S_M_Y_COP_01 or MP_M_FREEMODE_01" oninput="pedModelCheck()">
+        <label style="min-width:50px">Chance</label>
+        <input type="number" id="pm-chance" min="0" max="100" style="width:60px">%
+      </div>
+      <div class="flags" style="margin-bottom:8px">
+        <label class="fl"><input type="checkbox" id="pm-random_props"> random_props</label>
+        <label class="fl"><input type="checkbox" id="pm-rain_outfit"> rain_outfit</label>
+        <label class="fl"><input type="checkbox" id="pm-snow_outfit"> snow_outfit</label>
+      </div>
+      <div style="font-size:11px;color:var(--t2);margin-bottom:6px">Component &amp; prop values — leave blank to omit. Pair each comp with its tex.</div>
+      <div class="cgrid" id="pmComps"></div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="closePed()">Cancel</button>
+      <button class="btn A" onclick="savePed()">Save Ped</button>
+    </div>
+  </div>
+</div>
+
+<!-- VEHICLE IMPORT MODAL -->
+<div class="ov" id="vimpMo">
+  <div class="mo" style="width:460px">
+    <div class="mh"><h2>Import Vehicle List</h2><button class="btn sm" onclick="closeVImp()">✕</button></div>
+    <div class="mb">
+      <div style="font-size:11px;color:var(--t2);margin-bottom:6px">One vehicle model per line. Replaces current vehicle list with equal chance split.</div>
+      <textarea id="vimpText" rows="6" placeholder="POLICE&#10;POLICE2&#10;POLICE3"></textarea>
+      <div class="fr" style="margin-top:8px">
+        <label>Livery</label><input type="number" id="vimpLiv" style="width:55px" placeholder="">
+        <label>Pax</label><input type="number" id="vimpPax" style="width:55px">
+        <label>Pax%</label><input type="number" id="vimpPax_" style="width:55px" max="100">
+        <label>Color</label><input type="text" id="vimpCol" style="width:80px">
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="closeVImp()">Cancel</button>
+      <button class="btn A" onclick="applyVImp()">Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- VEHICLE BROWSER PANEL -->
+<div id="vbPanel">
+  <div class="hd">
+    <h3>Vehicle Browser</h3>
+    <button class="btn sm" onclick="closeVB()">✕</button>
+  </div>
+  <div class="filters">
+    <input type="text" id="vbSearch" oninput="renderVB()" placeholder="Search model…" style="width:100%">
+    <div style="display:flex;gap:5px">
+      <select id="vbAgency" onchange="renderVB()" style="flex:1"></select>
+      <select id="vbPack" onchange="renderVB()" style="flex:1"></select>
+    </div>
+    <div style="font-size:10px;color:var(--t2)">Click to add to active division</div>
+  </div>
+  <div class="vlist" id="vbList"></div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="ov" id="settMo">
+  <div class="mo" style="width:480px;max-height:70vh">
+    <div class="mh"><h2>Global Settings</h2><button class="btn sm" onclick="closeSettings()">✕</button></div>
+    <div class="mb">
+
+      <div style="border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:var(--a);margin-bottom:8px">Hair &amp; Beard Auto-Variation</div>
+        <label class="fl" style="font-size:12px;gap:8px;margin-bottom:8px;align-items:flex-start">
+          <input type="checkbox" id="sett-autoVary" style="margin-top:2px" onchange="settPreview()">
+          <span><b>Auto-expand freemode peds with varied hair &amp; beard</b><br>
+          <span style="color:var(--t2);font-size:11px">When enabled, saving a freemode ped (MP_M/F_FREEMODE_01) without hair/beard fields set will automatically replace it with <b id="sett-nLabel">5</b> variants — each gets a unique hairstyle, realistic hair colour, and occasionally a beard (male only). Chance is split evenly across variants.</span></span>
+        </label>
+        <div class="fr" style="margin-top:6px">
+          <label style="min-width:110px;font-size:11px">Number of variants</label>
+          <input type="number" id="sett-variantCount" min="2" max="10" value="5" style="width:60px" oninput="settPreview()">
+          <span style="font-size:11px;color:var(--t2)">(2–10)</span>
+        </div>
+        <div class="fr" style="margin-top:6px">
+          <label style="min-width:110px;font-size:11px">Beard chance %</label>
+          <input type="range" id="sett-beardChance" min="0" max="100" value="30" style="width:120px;accent-color:var(--a)" oninput="document.getElementById('sett-beardPct').textContent=this.value+'%';settPreview()">
+          <span id="sett-beardPct" style="font-size:12px;font-weight:700;min-width:34px">30%</span>
+          <span style="font-size:11px;color:var(--t2)">(male only — females always clean)</span>
+        </div>
+        <div style="margin-top:10px;padding:8px 10px;background:var(--bg);border-radius:4px;font-size:11px;color:var(--t2)" id="sett-preview"></div>
+      </div>
+
+      <div style="font-size:11px;color:var(--t2);line-height:1.6">
+        <b style="color:var(--t)">Hair colours used:</b> Black, Dark brown, Medium brown, Light brown, Dirty blonde, Blonde, Light blonde, Auburn — no platinum or fantasy colours.<br>
+        <b style="color:var(--t)">Beard styles:</b> light stubble, goatee, short beard, corporate beard — drawn randomly when the beard roll hits. Female variants always spawn clean (beard=0).
+      </div>
+
+      <div style="border:1px solid var(--border);border-radius:6px;padding:12px;margin-top:10px">
+        <div style="font-size:12px;font-weight:700;color:var(--a);margin-bottom:8px">Face Variation on Export</div>
+        <label class="fl" style="font-size:12px;gap:8px;align-items:flex-start">
+          <input type="checkbox" id="sett-varyFace" style="margin-top:2px" onchange="settFacePreview()">
+          <span><b>Randomise face &amp; skin tone for all MP freemode peds on export</b><br>
+          <span style="color:var(--t2);font-size:11px">Overrides any existing <code>comp_face</code> / <code>tex_face</code> values. Every freemode ped in the exported XML gets a unique random face drawable (0–19) and skin tone (fair→deep dark) assigned at export time. Does not modify your editor state — only affects the downloaded file.</span></span>
+        </label>
+        <div style="margin-top:8px;padding:6px 10px;background:var(--bg);border-radius:4px;font-size:11px;color:var(--t2)" id="sett-facePreview"></div>
+      </div>
+
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="closeSettings()">Cancel</button>
+      <button class="btn A" onclick="applySettings()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<div id="notif"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════════════
+const PT = ['LocalPatrol','LocalFemalePatrol','StatePatrol','StateFemalePatrol',
+  'LocalSWAT','NooseSWAT','LocalK9Patrol','StateK9Patrol','LocalAir','NooseAir',
+  'PoliceTransport','Ambulance','FireDepartment','Coroner',
+  'SmallTowTruck','LargeTowTruck','FlatbedTowTruck','AnimalControl'];
+const PT_LBL = {LocalPatrol:'Local Patrol',LocalFemalePatrol:'Local Female Patrol',
+  StatePatrol:'State Patrol',StateFemalePatrol:'State Female Patrol',
+  LocalSWAT:'Local SWAT',NooseSWAT:'NOOSE SWAT',LocalK9Patrol:'Local K9',
+  StateK9Patrol:'State K9',LocalAir:'Local Air',NooseAir:'NOOSE Air',
+  PoliceTransport:'Police Transport',Ambulance:'Ambulance',
+  FireDepartment:'Fire Dept',Coroner:'Coroner',SmallTowTruck:'Small Tow',
+  LargeTowTruck:'Large Tow',FlatbedTowTruck:'Flatbed Tow',AnimalControl:'Animal Control'};
+const RG = ['LosSantosCity','LosSantosCounty','BlaineCounty','NorthYankton','CayoPerico'];
+const RG_LBL = {LosSantosCity:'Los Santos City',LosSantosCounty:'LS County',
+  BlaineCounty:'Blaine County',NorthYankton:'North Yankton',CayoPerico:'Cayo Perico'};
+const K9_PT = ['LocalK9Patrol','StateK9Patrol'];
+// All ped comp/prop fields — paired as [comp, tex]
+const PED_PAIRS = [
+  ['comp_face','tex_face'],['comp_beard','tex_beard'],['comp_hair','tex_hair'],
+  ['comp_shirtoverlay','tex_shirtoverlay'],['comp_shirt','tex_shirt'],
+  ['comp_decals','tex_decals'],['comp_accessories','tex_accessories'],
+  ['comp_pants','tex_pants'],['comp_shoes','tex_shoes'],
+  ['comp_eyes','tex_eyes'],['comp_tasks','tex_tasks'],['comp_hands','tex_hands']
+];
+const ALL_PED_FIELDS = PED_PAIRS.flat().concat(['random_props','rain_outfit','snow_outfit']);
+const GTA_ZONES = 'AIRP,CANNY,MTCHIL,CMSW,SANCHIA,LACT,TATAMO,CCREAK,MTGORDO,MTJOSE,PALFOR,NCHU,DAVIS,STRAW,DTVINE,DOWNT,ELYSN,VESP,ALTA,BANNING,CYPRE,GRAPES,HAWICK,KOREAT,LMESA,MURRI,PDIST,RICHM,SANDY,SKID,TEXTI,VINEWOOD,ZANCUDO,ELGORL,GRAPSD,ALAMO,OCEANA,CHAMH,DELPE,MOVIE,ROCKF,SANAND,SCLUB,TERMINA,PALETO,PBLUFF'.split(',');
+// EUP field → PR comp/prop field mapping
+const EUP_MAP = {
+  Top:         {c:'comp_shirtoverlay',t:'tex_shirtoverlay'},
+  UpperSkin:   {c:'comp_shirt',       t:'tex_shirt'},
+  Decal:       {c:'comp_decals',      t:'tex_decals'},
+  Pants:       {c:'comp_pants',       t:'tex_pants'},
+  Shoes:       {c:'comp_shoes',       t:'tex_shoes'},
+  Armor:       {c:'comp_tasks',       t:'tex_tasks'},
+  Accessories: {c:'comp_accessories', t:'tex_accessories'},
+  Parachute:   {c:'comp_hands',       t:'tex_hands'},
+  Mask:        {c:'comp_face',        t:'tex_face'},
+  Hat:         {p:'prop_hats',        t:'tex_hats'},
+  Glasses:     {p:'prop_glasses',     t:'tex_glasses'},
+};
+const FREEMODE_MODELS = ['MP_M_FREEMODE_01','MP_F_FREEMODE_01'];
+
+// ── Hair / beard variation tables for auto-expand ──────────────────
+// Male hair drawables (common hairstyles, skipping unusual ones)
+const HAIR_M = [0,1,2,3,5,7,8,9,10,12,14,17,18,20,21,22];
+// Female hair drawables
+const HAIR_F = [0,1,2,3,4,5,6,7,8,9,14,16,17,21,25,28];
+// Realistic hair color textures only (black → auburn; no platinum/fantasy)
+const HAIR_COLORS = [0,1,2,3,4,5,6,8];
+// Beard drawables — array is weighted: 0 (clean) appears 3× more than bearded options
+const BEARD_M = [0,0,0,1,2,4,7,10,17,21];
+// Female peds get beard forced to 0 (clean shaved) always
+// Face drawables + skin tone textures for on-export variation
+const FACE_DRAW_M = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19];
+const FACE_DRAW_F = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19];
+// Skin tones: 0=very fair → 9=deep dark — full realistic range
+const FACE_TEX = [0,1,2,3,4,5,6,7,8,9];
+
+// ═══════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════
+const S = {
+  dr:null,cr:null,su:null,un:[],
+  drPT:'LocalPatrol', drRG:'LosSantosCity',
+  crPT:'LocalPatrol', suI:-1,
+  tab:'DR',
+  vehicles:[],   // [{model,pack,agency,type}]
+  eupPresets:[],  // parsed EUP presets
+  settings:{ autoVaryHairBeard:false, variantCount:5, beardChance:30, varyFaceOnExport:false }
+};
+let pedCtx=null;    // {ctx object, pi}
+let vimpCtx=null;   // ctx object
+let vbCtx=null;     // ctx object (active division for vehicle browser)
+
+// ═══════════════════════════════════════════════════════════════════
+// CONTEXT ENCODING — btoa/atob so JSON never touches HTML attributes
+// ═══════════════════════════════════════════════════════════════════
+function enc(obj){ return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))); }
+function dec(s){ return typeof s==='string'?JSON.parse(decodeURIComponent(escape(atob(s)))):s; }
+
+// ═══════════════════════════════════════════════════════════════════
+// RESOLVE CONTEXT → returns the array of VehicleDivisions
+// ═══════════════════════════════════════════════════════════════════
+function res(c){
+  switch(c.which){
+    case 'dr': return (S.dr[S.drPT]||{})[S.drRG]||[];
+    case 'cr': return (S.cr[c.pt]||[])[c.ci]?.vehicleDivisions||[];
+    case 'su-rg': return S.su[S.suI].regions[c.rg]||[];
+    case 'su-cr': return S.su[S.suI].customRegions[c.ci]?.vehicleDivisions||[];
+  }
+  return [];
+}
+function rerender(c){
+  if(c.which==='dr') renderDRM();
+  else if(c.which.startsWith('su')) renderSUM();
+  else if(c.which==='cr') renderCRM();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PARSING
+// ═══════════════════════════════════════════════════════════════════
+function parsePed(el){
+  const p={model:el.textContent.trim(), chance:el.getAttribute('chance')||'100'};
+  ALL_PED_FIELDS.forEach(k=>{
+    const v=el.getAttribute(k);
+    if(v!==null) p[k]=k==='random_props'||k==='rain_outfit'||k==='snow_outfit'?(v==='true'):v;
+  });
+  return p;
+}
+function parseVeh(el){
+  const txt=[...el.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join('').trim()||el.textContent.trim();
+  const v={model:txt,chance:el.getAttribute('chance')||'100',color:el.getAttribute('color')||'',
+    pax:el.getAttribute('pax')||'',pax_chance:el.getAttribute('pax_chance')||'',
+    livery:el.getAttribute('livery')||'',extraData:null};
+  const ed=el.querySelector('ExtraData');
+  if(ed){v.extraData={type:ed.getAttribute('xsi:type')||'',attrs:{}};
+    [...ed.attributes].filter(a=>a.name!=='xsi:type').forEach(a=>v.extraData.attrs[a.name]=a.value);}
+  return v;
+}
+function parseWep(el){
+  const w={name:el.textContent.trim(),chance:el.getAttribute('chance')||'100',comps:[]};
+  for(let i=1;;i++){const v=el.getAttribute('comp_'+i);if(!v)break;w.comps.push(v);}
+  return w;
+}
+function parseDiv(el){
+  return {
+    spawn_distance:el.getAttribute('spawn_distance')||'250',
+    chance:el.getAttribute('chance')||'100',
+    name_list_id:el.getAttribute('name_list_id')||'',
+    k9_model:el.getAttribute('k9_model')||'',
+    k9_tex_face:el.getAttribute('k9_tex_face')||'',
+    k9_tex_shirt:el.getAttribute('k9_tex_shirt')||'',
+    k9_tex_accessories:el.getAttribute('k9_tex_accessories')||'',
+    peds:[...el.querySelectorAll(':scope>Peds>Ped')].map(parsePed),
+    vehicles:[...el.querySelectorAll(':scope>Vehicles>Vehicle')].map(parseVeh),
+    longGuns:[...el.querySelectorAll(':scope>LongGuns>LongGun')].map(parseWep),
+    handGuns:[...el.querySelectorAll(':scope>HandGuns>HandGun')].map(parseWep),
+    nonLethals:[...el.querySelectorAll(':scope>NonLethals>NonLethal')].map(e=>e.textContent.trim())
+  };
+}
+function parseCR(el){return{name:el.getAttribute('name')||'Unnamed',
+  zones:[...el.querySelectorAll(':scope>Zones>Zone')].map(z=>z.textContent.trim()),
+  vehicleDivisions:[...el.querySelectorAll(':scope>VehicleDivisions>VehicleDivision')].map(parseDiv)};}
+function pDR(xml){const doc=new DOMParser().parseFromString(xml,'text/xml');const r={};
+  PT.forEach(pt=>{const e=doc.querySelector(pt);r[pt]={};
+    RG.forEach(rg=>{const re=e&&e.querySelector(rg);
+      r[pt][rg]=re?[...re.querySelectorAll(':scope>VehicleDivision')].map(parseDiv):[];});});return r;}
+function pCR(xml){const doc=new DOMParser().parseFromString(xml,'text/xml');const r={};
+  PT.forEach(pt=>{const e=doc.querySelector(pt);
+    r[pt]=e?[...e.querySelectorAll(':scope>CustomRegion')].map(parseCR):[];});return r;}
+function pSU(xml){const doc=new DOMParser().parseFromString(xml,'text/xml');
+  return[...doc.querySelectorAll('PolicingRedefined>SpecialUnit')].map(el=>{
+    const u={name:el.getAttribute('name')||'',role:el.getAttribute('role')||'cop',
+      code_2:el.getAttribute('code_2')==='true',code_3:el.getAttribute('code_3')==='true',
+      pursuit:el.getAttribute('pursuit')==='true',felony_stop:el.getAttribute('felony_stop')==='true',
+      traffic_stop:el.getAttribute('traffic_stop')==='true',regions:{},customRegions:[]};
+    RG.forEach(rg=>{const e=el.querySelector(':scope>'+rg);
+      u.regions[rg]=e?[...e.querySelectorAll(':scope>VehicleDivision')].map(parseDiv):[];});
+    const cre=el.querySelector(':scope>CustomRegions');
+    if(cre)u.customRegions=[...cre.querySelectorAll(':scope>CustomRegion')].map(parseCR);
+    return u;});}
+function pUN(xml){const doc=new DOMParser().parseFromString(xml,'text/xml');
+  return[...doc.querySelectorAll('CustomNameList')].map(el=>({id:el.getAttribute('id')||'',
+    names:[...el.querySelectorAll('Name')].map(n=>n.textContent.trim())}));}
+function pVehicleCSV(text){
+  const lines=text.trim().split('\n');const hdr=lines[0].split(',').map(h=>h.trim().toLowerCase());
+  const mi=hdr.indexOf('model'),pi=hdr.indexOf('pack'),ai=hdr.indexOf('agency');
+  return lines.slice(1).map(l=>{const c=l.split(',');return{model:(c[mi]||'').trim(),pack:(c[pi]||'').trim(),agency:(c[ai]||'').trim()};}).filter(v=>v.model);}
+function pEUP(text){
+  const presets=[];let cur=null;
+  text.split('\n').forEach(raw=>{
+    const line=raw.trim();
+    if(line.startsWith(';')||line.startsWith('//')||!line)return;
+    if(line.startsWith('[')){cur={name:line.slice(1,-1),fields:{}};presets.push(cur);return;}
+    if(cur&&line.includes('=')){const[k,v]=line.split('=').map(s=>s.trim());cur.fields[k]=v;}
+  });
+  return presets.map(p=>{
+    const g=p.fields.Gender||'Male';
+    const c2=p.fields.Category2||'';const c3=p.fields.Category3||'';
+    const comps={};
+    Object.entries(EUP_MAP).forEach(([k,m])=>{
+      if(!p.fields[k])return;
+      const[mod,tex]=p.fields[k].split(':').map(Number);
+      if(m.c)comps[m.c]=String(isNaN(mod)?0:mod);
+      if(m.p)comps[m.p]=String(isNaN(mod)?0:mod);
+      if(m.t)comps[m.t]=String(isNaN(tex)?0:tex);
+    });
+    return{name:p.name,gender:g,cat2:c2,cat3:c3,comps};
+  });}
+
+// ═══════════════════════════════════════════════════════════════════
+// SERIALIZATION
+// ═══════════════════════════════════════════════════════════════════
+const X=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const NS='xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"';
+const i_=(n)=>'  '.repeat(n);
+function sPed(p){
+  let pp=p;
+  if(S.settings.varyFaceOnExport&&FREEMODE_MODELS.includes((p.model||'').trim().toUpperCase())){
+    const female=p.model.trim().toUpperCase()==='MP_F_FREEMODE_01';
+    pp=Object.assign({},p,{
+      comp_face:String(rnd(female?FACE_DRAW_F:FACE_DRAW_M)),
+      tex_face:String(rnd(FACE_TEX))
+    });
+  }
+  let a=`chance="${X(pp.chance)}"`;
+  PED_PAIRS.flat().forEach(k=>{if(pp[k]!==undefined&&pp[k]!=='')a+=` ${k}="${X(pp[k])}"`;});
+  if(pp.random_props)a+=' random_props="true"';if(pp.rain_outfit)a+=' rain_outfit="true"';if(pp.snow_outfit)a+=' snow_outfit="true"';
+  return`<Ped ${a}>${X(pp.model)}</Ped>`;}
+function sVeh(v){
+  let a=`chance="${X(v.chance)}"`;
+  if(v.color)a+=` color="${X(v.color)}"`;if(v.pax)a+=` pax="${X(v.pax)}"`;
+  if(v.pax_chance)a+=` pax_chance="${X(v.pax_chance)}"`;if(v.livery!==''&&v.livery!==undefined&&v.livery!==null)a+=` livery="${X(v.livery)}"`;
+  const ed=v.extraData?`<ExtraData xsi:type="${X(v.extraData.type)}"${Object.entries(v.extraData.attrs).map(([k,val])=>` ${k}="${X(val)}"`).join('')} />`:'';
+  return`<Vehicle ${a}>${X(v.model)}${ed}</Vehicle>`;}
+function sWep(tag,w){
+  let a=`chance="${X(w.chance)}"`;w.comps.forEach((c,i)=>a+=` comp_${i+1}="${X(c)}"`);
+  return`<${tag} ${a}>${X(w.name)}</${tag}>`;}
+function sDiv(d,dp=2){
+  const p=i_(dp),p1=i_(dp+1),p2=i_(dp+2);
+  let a=`spawn_distance="${X(d.spawn_distance)}" chance="${X(d.chance)}"`;
+  if(d.name_list_id)a+=` name_list_id="${X(d.name_list_id)}"`;
+  if(d.k9_model){a+=` k9_model="${X(d.k9_model)}"`;
+    if(d.k9_tex_face)a+=` k9_tex_face="${X(d.k9_tex_face)}"`;
+    if(d.k9_tex_shirt)a+=` k9_tex_shirt="${X(d.k9_tex_shirt)}"`;
+    if(d.k9_tex_accessories)a+=` k9_tex_accessories="${X(d.k9_tex_accessories)}"`;
+  }
+  const peds=d.peds.length?`${p1}<Peds>\n${d.peds.map(e=>p2+sPed(e)).join('\n')}\n${p1}</Peds>`:`${p1}<Peds />`;
+  const vehs=d.vehicles.length?`${p1}<Vehicles>\n${d.vehicles.map(e=>p2+sVeh(e)).join('\n')}\n${p1}</Vehicles>`:`${p1}<Vehicles />`;
+  const lgs=d.longGuns.length?`${p1}<LongGuns>\n${d.longGuns.map(e=>p2+sWep('LongGun',e)).join('\n')}\n${p1}</LongGuns>`:`${p1}<LongGuns />`;
+  const hgs=d.handGuns.length?`${p1}<HandGuns>\n${d.handGuns.map(e=>p2+sWep('HandGun',e)).join('\n')}\n${p1}</HandGuns>`:`${p1}<HandGuns />`;
+  const nls=d.nonLethals.length?`${p1}<NonLethals>\n${d.nonLethals.map(n=>p2+`<NonLethal>${X(n)}</NonLethal>`).join('\n')}\n${p1}</NonLethals>`:`${p1}<NonLethals />`;
+  return`${p}<VehicleDivision ${a}>\n${peds}\n${vehs}\n${lgs}\n${hgs}\n${nls}\n${p}</VehicleDivision>`;}
+function sCR(cr,dp=2){const p=i_(dp),p1=i_(dp+1),p2=i_(dp+2);
+  const zones=cr.zones.length?`${p1}<Zones>\n${cr.zones.map(z=>p2+`<Zone>${X(z)}</Zone>`).join('\n')}\n${p1}</Zones>`:`${p1}<Zones />`;
+  const vds=cr.vehicleDivisions.length?`${p1}<VehicleDivisions>\n${cr.vehicleDivisions.map(d=>sDiv(d,dp+2)).join('\n')}\n${p1}</VehicleDivisions>`:`${p1}<VehicleDivisions />`;
+  return`${p}<CustomRegion name="${X(cr.name)}">\n${zones}\n${vds}\n${p}</CustomRegion>`;}
+function serializeDR(dr){
+  let o=`<PolicingRedefined ${NS}>\n`;
+  PT.forEach(pt=>{const d=dr[pt]||{};const has=RG.some(r=>(d[r]||[]).length>0);
+    if(!has){o+=`  <${pt} />\n`;return;}
+    o+=`  <${pt}>\n`;
+    RG.forEach(rg=>{const divs=d[rg]||[];if(!divs.length)return;
+      o+=`    <${rg}>\n${divs.map(d=>sDiv(d,3)).join('\n')}\n    </${rg}>\n`;});
+    o+=`  </${pt}>\n`;});
+  return o+`</PolicingRedefined>`;}
+function serializeCR(cr){
+  let o=`<PolicingRedefined ${NS}>\n`;
+  PT.forEach(pt=>{const rs=cr[pt]||[];
+    if(!rs.length){o+=`  <${pt} />\n`;return;}
+    o+=`  <${pt}>\n${rs.map(r=>sCR(r,2)).join('\n')}\n  </${pt}>\n`;});
+  return o+`</PolicingRedefined>`;}
+function serializeSU(units){
+  const body=units.map(u=>{
+    let a=`name="${X(u.name)}" role="${X(u.role)}"`;
+    if(u.code_2)a+=' code_2="true"';if(u.code_3)a+=' code_3="true"';
+    if(u.pursuit)a+=' pursuit="true"';if(u.felony_stop)a+=' felony_stop="true"';
+    if(u.traffic_stop)a+=' traffic_stop="true"';
+    let body='';RG.forEach(rg=>{const ds=u.regions[rg]||[];if(!ds.length)return;
+      body+=`    <${rg}>\n${ds.map(d=>sDiv(d,3)).join('\n')}\n    </${rg}>\n`;});
+    const crs=u.customRegions.length?`    <CustomRegions>\n${u.customRegions.map(cr=>sCR(cr,3)).join('\n')}\n    </CustomRegions>`:`    <CustomRegions />`;
+    return`  <SpecialUnit ${a}>\n${body}${crs}\n  </SpecialUnit>`;}).join('\n');
+  return`<PolicingRedefined ${NS}>\n${body}\n</PolicingRedefined>`;}
+function serializeUN(un){
+  const body=un.map(nl=>{const names=nl.names.map(n=>`        <Name>${X(n)}</Name>`).join('\n');
+    return`    <CustomNameList id="${X(nl.id)}">\n${names}\n    </CustomNameList>`;}).join('\n');
+  return`<CustomUnitNames ${NS}>\n${body}\n</CustomUnitNames>`;}
+
+// ═══════════════════════════════════════════════════════════════════
+// CHANCE NORMALIZATION
+// ═══════════════════════════════════════════════════════════════════
+function norm(items,key,ci,nv){
+  nv=Math.max(0,Math.min(100,parseInt(nv)||0));
+  items[ci][key]=String(nv);
+  const others=items.filter((_,i)=>i!==ci);
+  const rem=100-nv;
+  const tot=others.reduce((s,it)=>s+(parseInt(it[key])||0),0);
+  if(rem<=0){others.forEach(it=>it[key]='0');return;}
+  if(tot===0){let l=rem;others.forEach((it,oi)=>{const v=oi===others.length-1?l:Math.floor(rem/others.length);it[key]=String(v);l-=v;});return;}
+  let dist=0;others.forEach((it,oi)=>{
+    const prop=(parseInt(it[key])||0)/tot;
+    const isLast=oi===others.length-1;
+    const v=isLast?rem-dist:Math.round(prop*rem);
+    it[key]=String(Math.max(0,v));dist+=Math.max(0,v);});}
+function ctot(items,k='chance'){return items.reduce((s,it)=>s+(parseInt(it[k])||0),0);}
+function cc(n){return n===100?'ok':n>100?'bad':'wn';}
+
+// ═══════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════
+function notify(msg){const n=document.getElementById('notif');n.textContent=msg;n.classList.add('on');setTimeout(()=>n.classList.remove('on'),2200);}
+function dl(name,txt){const a=document.createElement('a');a.href='data:text/xml;charset=utf-8,'+encodeURIComponent(txt);a.download=name;a.click();}
+function exp(w){
+  if(w==='DR'&&S.dr)dl('DefaultRegions.xml',serializeDR(S.dr));
+  else if(w==='CR'&&S.cr)dl('CustomRegions.xml',serializeCR(S.cr));
+  else if(w==='SU'&&S.su)dl('SpecialUnits.xml',serializeSU(S.su));
+  else if(w==='UN'&&S.un)dl('CustomUnitNames.xml',serializeUN(S.un));
+  else notify('Nothing loaded for '+w);}
+function expAll(){['DR','CR','SU','UN'].forEach(exp);}
+function newDiv(){return{spawn_distance:'250',chance:'100',name_list_id:'',k9_model:'',k9_tex_face:'',k9_tex_shirt:'',k9_tex_accessories:'',
+  peds:[],vehicles:[],longGuns:[],handGuns:[],nonLethals:[]};}
+function clone(x){return JSON.parse(JSON.stringify(x));}
+
+// ═══════════════════════════════════════════════════════════════════
+// FILE INPUTS
+// ═══════════════════════════════════════════════════════════════════
+function loadFile(id,parser,sk,badgeId,cb){
+  document.getElementById(id).addEventListener('change',e=>{
+    const f=e.target.files[0];if(!f)return;
+    f.text().then(txt=>{S[sk]=parser(txt);document.getElementById(badgeId).classList.add('ok');cb();notify('Loaded '+f.name);});});}
+loadFile('fDR',pDR,'dr','bDR',()=>{renderDRPL();renderDRRL();renderDRM();});
+loadFile('fCR',pCR,'cr','bCR',()=>{renderCRPL();renderCRM();});
+loadFile('fSU',pSU,'su','bSU',()=>{renderSUL();renderSUM();});
+loadFile('fUN',pUN,'un','bUN',()=>{renderUN();});
+document.getElementById('fVH').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  f.text().then(txt=>{S.vehicles=pVehicleCSV(txt);document.getElementById('bVH').classList.add('ok');renderVBFilters();notify('Loaded '+S.vehicles.length+' vehicles');});});
+document.getElementById('fEUP').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  f.text().then(txt=>{S.eupPresets=pEUP(txt);document.getElementById('bEUP').classList.add('ok');notify('Loaded '+S.eupPresets.length+' EUP presets');});});
+
+// ═══════════════════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════════════════
+const TAB_IDS=['DR','CR','SU','UN'];
+function swTab(t){S.tab=t;
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('on',TAB_IDS[i]===t));
+  document.querySelectorAll('.tp').forEach((el,i)=>el.classList.toggle('on',TAB_IDS[i]===t));}
+
+// ═══════════════════════════════════════════════════════════════════
+// DEFAULT REGIONS
+// ═══════════════════════════════════════════════════════════════════
+function renderDRPL(){
+  document.getElementById('drPL').innerHTML='<div class="sg">Patrol Types</div>'+
+    PT.map(pt=>`<div class="si${S.drPT===pt?' on':''}" onclick="selDRPT('${pt}')">${PT_LBL[pt]||pt}</div>`).join('');}
+function selDRPT(pt){S.drPT=pt;renderDRPL();renderDRRL();renderDRM();}
+function renderDRRL(){
+  const el=document.getElementById('drRL');if(!S.dr){el.innerHTML='';return;}
+  el.innerHTML='<div class="sg">Regions</div>'+RG.map(rg=>{
+    const n=((S.dr[S.drPT]||{})[rg]||[]).length;
+    return`<div class="si${S.drRG===rg?' on':''}" onclick="selDRRG('${rg}')">${RG_LBL[rg]} <span style="color:var(--t2);font-size:10px">(${n})</span></div>`;}).join('');}
+function selDRRG(rg){S.drRG=rg;renderDRRL();renderDRM();}
+function renderDRM(){
+  const el=document.getElementById('drM');if(!S.dr){el.innerHTML='<div class="empty">Load DefaultRegions.xml first.</div>';return;}
+  const divs=((S.dr[S.drPT]||{})[S.drRG]||[]);const isK9=K9_PT.includes(S.drPT);
+  const ctx=enc({which:'dr'});
+  let h=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <h2 style="font-size:14px;color:var(--a)">${PT_LBL[S.drPT]} › ${RG_LBL[S.drRG]}</h2>
+    <button class="btn sm" onclick="addDiv('${ctx}')">+ Add Division</button>
+  </div>`;
+  if(!divs.length)h+='<div class="empty">No divisions. Click "+ Add Division".</div>';
+  else divs.forEach((_,i)=>{h+=divCard(divs,i,enc({which:'dr',i}),isK9);});
+  el.innerHTML=h;}
+
+// ═══════════════════════════════════════════════════════════════════
+// EUP MATCH — finds best-matching preset for a ped object
+// ═══════════════════════════════════════════════════════════════════
+function findEUPMatch(ped){
+  if(!S.eupPresets.length) return null;
+  const model=(ped.model||'').trim().toUpperCase();
+  if(!FREEMODE_MODELS.includes(model)) return null;
+  const female=model==='MP_F_FREEMODE_01';
+  let best=null,bestScore=0;
+  for(const preset of S.eupPresets){
+    if(female?(preset.gender!=='Female'):(preset.gender!=='Male')) continue;
+    const fields=Object.entries(preset.comps).filter(([,v])=>v!==''&&v!==undefined);
+    if(!fields.length) continue;
+    let hits=0;
+    for(const [k,v] of fields) if(String(ped[k]||'')===String(v)) hits++;
+    if(hits>bestScore&&hits/fields.length>=0.5){bestScore=hits;best=preset;}
+  }
+  return best;}
+
+// ═══════════════════════════════════════════════════════════════════
+// DIVISION CARD (shared renderer)
+// ═══════════════════════════════════════════════════════════════════
+function divCard(divs,idx,ctxB64,isK9){
+  const d=divs[idx];
+  const dt=ctot(divs);
+  const pt=ctot(d.peds),vt=ctot(d.vehicles),lgt=ctot(d.longGuns),hgt=ctot(d.handGuns);
+  const k9=isK9?`<div class="fr" style="margin-bottom:6px">
+    <label>K9 Model</label><input type="text" value="${X(d.k9_model)}" onchange="setDAttr('${ctxB64}',${idx},'k9_model',this.value)" style="width:130px" placeholder="SHEPHERD">
+    <label>TexFace</label><input type="number" value="${X(d.k9_tex_face)}" onchange="setDAttr('${ctxB64}',${idx},'k9_tex_face',this.value)" style="width:46px">
+    <label>Shirt</label><input type="number" value="${X(d.k9_tex_shirt)}" onchange="setDAttr('${ctxB64}',${idx},'k9_tex_shirt',this.value)" style="width:46px">
+    <label>Acc</label><input type="number" value="${X(d.k9_tex_accessories)}" onchange="setDAttr('${ctxB64}',${idx},'k9_tex_accessories',this.value)" style="width:46px">
+  </div>`:'';
+
+  function pedRows(){return d.peds.map((p,pi)=>{
+    const match=findEUPMatch(p);
+    const sub=match
+      ?`<div class="eup-sub">${X(match.cat2||'')}${match.cat3?' · '+X(match.cat3):''}${match.name?' · '+X(match.name):''}</div>`
+      :'';
+    return`<div class="ir">
+    <div class="nm" style="min-width:160px">
+      <input type="text" value="${X(p.model)}" onchange="setPedModel('${ctxB64}',${idx},${pi},this.value)" placeholder="Ped model">
+      ${sub}
+    </div>
+    <div class="cr_">
+      <input type="range" min="0" max="100" value="${p.chance}" oninput="pedChance('${ctxB64}',${idx},${pi},this.value)">
+      <span class="cn ${cc(pt)}">${p.chance}%</span>
+    </div>
+    <button class="btn sm" onclick="openPed('${ctxB64}',${idx},${pi})">EUP</button>
+    <button class="btn sm D" onclick="delPed('${ctxB64}',${idx},${pi})">✕</button>
+  </div>`;}).join('');}
+
+  function vehRows(){return d.vehicles.map((v,vi)=>`<div class="ir">
+    <div class="nm" style="min-width:140px"><input type="text" value="${X(v.model)}" onchange="setVAttr('${ctxB64}',${idx},${vi},'model',this.value)" placeholder="Model"></div>
+    <div class="cr_">
+      <input type="range" min="0" max="100" value="${v.chance}" oninput="vChance('${ctxB64}',${idx},${vi},this.value)">
+      <span class="cn ${cc(vt)}">${v.chance}%</span>
+    </div>
+    <input type="text" value="${X(v.color)}" onchange="setVAttr('${ctxB64}',${idx},${vi},'color',this.value)" placeholder="Color" style="width:70px" title="Color">
+    <span style="font-size:10px;color:var(--t2)">Pax</span><input type="number" value="${X(v.pax)}" onchange="setVAttr('${ctxB64}',${idx},${vi},'pax',this.value)" style="width:40px">
+    <span style="font-size:10px;color:var(--t2)">%</span><input type="number" value="${X(v.pax_chance)}" onchange="setVAttr('${ctxB64}',${idx},${vi},'pax_chance',this.value)" style="width:40px">
+    <span style="font-size:10px;color:var(--t2)">Liv</span><input type="number" value="${X(v.livery)}" onchange="setVAttr('${ctxB64}',${idx},${vi},'livery',this.value)" style="width:40px" placeholder="-">
+    <button class="btn sm D" onclick="delVeh('${ctxB64}',${idx},${vi})">✕</button>
+  </div>`).join('');}
+
+  function gunRows(guns,gtype){const t=ctot(guns);return guns.map((g,gi)=>`<div class="ir">
+    <div class="nm" style="min-width:160px"><input type="text" value="${X(g.name)}" onchange="setGName('${ctxB64}',${idx},'${gtype}',${gi},this.value)" placeholder="Weapon"></div>
+    <div class="cr_">
+      <input type="range" min="0" max="100" value="${g.chance}" oninput="gChance('${ctxB64}',${idx},'${gtype}',${gi},this.value)">
+      <span class="cn ${cc(t)}">${g.chance}%</span>
+    </div>
+    <input type="text" value="${X(g.comps.join(','))}" onchange="setGComps('${ctxB64}',${idx},'${gtype}',${gi},this.value)" placeholder="COMPONENT_AT_PI_FLSH,…" style="width:210px" title="Comma-separated attachment components">
+    <button class="btn sm D" onclick="delGun('${ctxB64}',${idx},'${gtype}',${gi})">✕</button>
+  </div>`).join('');}
+
+  const nlRows=d.nonLethals.map((nl,ni)=>`<div class="ir">
+    <div class="nm"><input type="text" value="${X(nl)}" onchange="setNL('${ctxB64}',${idx},${ni},this.value)" placeholder="Weapon"></div>
+    <button class="btn sm D" onclick="delNL('${ctxB64}',${idx},${ni})">✕</button>
+  </div>`).join('');
+
+  const up=idx>0,dn=idx<divs.length-1;
+  return`<div class="dc">
+    <div class="dh">
+      <h4>Division ${idx+1}</h4>
+      <div class="cr_">
+        <span style="font-size:10px;color:var(--t2)">Chance</span>
+        <input type="range" min="0" max="100" value="${d.chance}" oninput="divChance('${ctxB64}',${idx},this.value)">
+        <span class="cn ${cc(dt)}">${d.chance}%</span>
+      </div>
+      <span style="font-size:10px;color:var(--t2)">Spawn</span>
+      <input type="number" value="${X(d.spawn_distance)}" onchange="setDAttr('${ctxB64}',${idx},'spawn_distance',this.value)" style="width:55px">
+      <span style="font-size:10px;color:var(--t2)">NameList</span>
+      <input type="text" value="${X(d.name_list_id)}" onchange="setDAttr('${ctxB64}',${idx},'name_list_id',this.value)" style="width:75px" placeholder="id">
+      <button class="btn sm" onclick="dupDiv('${ctxB64}',${idx})" title="Duplicate">⧉</button>
+      ${up?`<button class="btn sm" onclick="mvDiv('${ctxB64}',${idx},-1)">↑</button>`:''}
+      ${dn?`<button class="btn sm" onclick="mvDiv('${ctxB64}',${idx},1)">↓</button>`:''}
+      <button class="btn sm D" onclick="delDiv('${ctxB64}',${idx})">Delete</button>
+    </div>
+    <div class="db">
+      ${k9}
+      <div class="sl">Peds <span class="stot ${cc(pt)}">${pt}/100</span> <button class="btn sm" onclick="addPed('${ctxB64}',${idx})">+ Ped</button></div>
+      <div class="il">${pedRows()||'<div class="empty">No peds</div>'}</div>
+      <div class="sl">Vehicles <span class="stot ${cc(vt)}">${vt}/100</span>
+        <button class="btn sm" onclick="addVeh('${ctxB64}',${idx})">+ Vehicle</button>
+        <button class="btn sm" onclick="openVImp('${ctxB64}',${idx})">Import List</button>
+        <button class="btn sm G" onclick="openVB('${ctxB64}',${idx})">Browse CSV</button>
+      </div>
+      <div class="il">${vehRows()||'<div class="empty">No vehicles</div>'}</div>
+      <div class="sl">Long Guns <span class="stot ${cc(lgt)}">${lgt}/100</span> <button class="btn sm" onclick="addGun('${ctxB64}',${idx},'longGuns')">+ Gun</button></div>
+      <div class="il">${gunRows(d.longGuns,'longGuns')||'<div class="empty">None</div>'}</div>
+      <div class="sl">Hand Guns <span class="stot ${cc(hgt)}">${hgt}/100</span> <button class="btn sm" onclick="addGun('${ctxB64}',${idx},'handGuns')">+ Gun</button></div>
+      <div class="il">${gunRows(d.handGuns,'handGuns')||'<div class="empty">None</div>'}</div>
+      <div class="sl">Non-Lethals <button class="btn sm" onclick="addNL('${ctxB64}',${idx})">+ Add</button></div>
+      <div class="il">${nlRows||'<div class="empty">None</div>'}</div>
+    </div>
+  </div>`;}
+
+// ═══════════════════════════════════════════════════════════════════
+// DIVISION MUTATIONS
+// ═══════════════════════════════════════════════════════════════════
+function addDiv(ctxB64){const c=dec(ctxB64);
+  if(c.which==='dr'){if(!S.dr[S.drPT][S.drRG])S.dr[S.drPT][S.drRG]=[];S.dr[S.drPT][S.drRG].push(newDiv());renderDRM();}
+  else if(c.which==='cr'){S.cr[c.pt][c.ci].vehicleDivisions.push(newDiv());renderCRM();}
+  else if(c.which==='su-rg'){S.su[S.suI].regions[c.rg].push(newDiv());renderSUM();}
+  else if(c.which==='su-cr'){S.su[S.suI].customRegions[c.ci].vehicleDivisions.push(newDiv());renderSUM();}}
+function divChance(ctxB64,idx,val){const c=dec(ctxB64);norm(res(c),'chance',idx,val);rerender(c);}
+function dupDiv(ctxB64,idx){const c=dec(ctxB64);const l=res(c);l.splice(idx+1,0,clone(l[idx]));rerender(c);}
+function delDiv(ctxB64,idx){const c=dec(ctxB64);res(c).splice(idx,1);rerender(c);}
+function mvDiv(ctxB64,idx,dir){const c=dec(ctxB64);const l=res(c);const ni=idx+dir;
+  if(ni<0||ni>=l.length)return;[l[idx],l[ni]]=[l[ni],l[idx]];rerender(c);}
+function setDAttr(ctxB64,idx,k,v){const c=dec(ctxB64);res(c)[idx][k]=v;}
+// Peds
+function addPed(ctxB64,idx){const c=dec(ctxB64);res(c)[idx].peds.push({model:'S_M_Y_COP_01',chance:'100'});rerender(c);}
+function delPed(ctxB64,idx,pi){const c=dec(ctxB64);res(c)[idx].peds.splice(pi,1);rerender(c);}
+function setPedModel(ctxB64,idx,pi,v){const c=dec(ctxB64);res(c)[idx].peds[pi].model=v;}
+function pedChance(ctxB64,idx,pi,v){const c=dec(ctxB64);norm(res(c)[idx].peds,'chance',pi,v);rerender(c);}
+// Vehicles
+function addVeh(ctxB64,idx){const c=dec(ctxB64);res(c)[idx].vehicles.push({model:'POLICE',chance:'100',color:'',pax:'',pax_chance:'',livery:'',extraData:null});rerender(c);}
+function delVeh(ctxB64,idx,vi){const c=dec(ctxB64);res(c)[idx].vehicles.splice(vi,1);rerender(c);}
+function setVAttr(ctxB64,idx,vi,k,v){const c=dec(ctxB64);res(c)[idx].vehicles[vi][k]=v;}
+function vChance(ctxB64,idx,vi,v){const c=dec(ctxB64);norm(res(c)[idx].vehicles,'chance',vi,v);rerender(c);}
+// Guns
+function addGun(ctxB64,idx,gt){const c=dec(ctxB64);res(c)[idx][gt].push({name:'WEAPON_PISTOL',chance:'100',comps:[]});rerender(c);}
+function delGun(ctxB64,idx,gt,gi){const c=dec(ctxB64);res(c)[idx][gt].splice(gi,1);rerender(c);}
+function setGName(ctxB64,idx,gt,gi,v){const c=dec(ctxB64);res(c)[idx][gt][gi].name=v;}
+function setGComps(ctxB64,idx,gt,gi,v){const c=dec(ctxB64);res(c)[idx][gt][gi].comps=v.split(',').map(s=>s.trim()).filter(Boolean);}
+function gChance(ctxB64,idx,gt,gi,v){const c=dec(ctxB64);norm(res(c)[idx][gt],'chance',gi,v);rerender(c);}
+// Non-lethals
+function addNL(ctxB64,idx){const c=dec(ctxB64);res(c)[idx].nonLethals.push('WEAPON_STUNGUN');rerender(c);}
+function delNL(ctxB64,idx,ni){const c=dec(ctxB64);res(c)[idx].nonLethals.splice(ni,1);rerender(c);}
+function setNL(ctxB64,idx,ni,v){const c=dec(ctxB64);res(c)[idx].nonLethals[ni]=v;}
+
+// ═══════════════════════════════════════════════════════════════════
+// PED MODAL
+// ═══════════════════════════════════════════════════════════════════
+function pedModelCheck(){
+  const m=document.getElementById('pm-model').value.trim().toUpperCase();
+  const w=document.getElementById('pedWarn');
+  if(FREEMODE_MODELS.includes(m)){
+    w.innerHTML=`<div class="warn-box">⚠ Freemode ped detected. Without face/hair components set, NPCs will spawn with GTA's default white male appearance. Set comp_face + tex_face and comp_hair + tex_hair to define their look, or load an EUP preset above.</div>`;
+  } else w.innerHTML='';}
+// Infer freemode gender from patrol-type context
+function freemodeForCtx(c){
+  const pt=c.which==='dr'?S.drPT:c.which==='cr'?c.pt:'';
+  return pt.toLowerCase().includes('female')?'MP_F_FREEMODE_01':'MP_M_FREEMODE_01';
+}
+function openPed(ctxB64,idx,pi){
+  const c=dec(ctxB64);pedCtx={c,idx,pi};
+  const ped=res(c)[idx].peds[pi];
+  // Auto-upgrade model to freemode when EUP button is used
+  const currentModel=(ped.model||'').trim().toUpperCase();
+  const targetModel=FREEMODE_MODELS.includes(currentModel)?ped.model:freemodeForCtx(c);
+  document.getElementById('pm-model').value=targetModel;
+  document.getElementById('pm-chance').value=ped.chance||'100';
+  document.getElementById('pm-random_props').checked=!!ped.random_props;
+  document.getElementById('pm-rain_outfit').checked=!!ped.rain_outfit;
+  document.getElementById('pm-snow_outfit').checked=!!ped.snow_outfit;
+  const grid=document.getElementById('pmComps');
+  grid.innerHTML=PED_PAIRS.map(([ck,tk])=>`
+    <div class="cf"><label>${ck}</label><input type="number" id="pm-${ck}" value="${X(ped[ck]||'')}" min="-1" placeholder="–"></div>
+    <div class="cf"><label>${tk}</label><input type="number" id="pm-${tk}" value="${X(ped[tk]||'')}" min="-1" placeholder="–"></div>
+    <div></div>`).join('');
+  populateEUPFilter();pedModelCheck();
+  document.getElementById('pedMo').classList.add('on');}
+function closePed(){document.getElementById('pedMo').classList.remove('on');}
+function savePed(){
+  if(!pedCtx)return;
+  const{c,idx,pi}=pedCtx;const divPeds=res(c)[idx].peds;
+  const ped=divPeds[pi];
+  ped.model=document.getElementById('pm-model').value;
+  ped.chance=document.getElementById('pm-chance').value;
+  ped.random_props=document.getElementById('pm-random_props').checked;
+  ped.rain_outfit=document.getElementById('pm-rain_outfit').checked;
+  ped.snow_outfit=document.getElementById('pm-snow_outfit').checked;
+  PED_PAIRS.flat().forEach(k=>{const v=document.getElementById('pm-'+k)?.value;
+    if(v!==''&&v!==null&&v!==undefined)ped[k]=v;else delete ped[k];});
+  // Auto-vary hair/beard when setting is on and fields are blank
+  const isFM=FREEMODE_MODELS.includes(ped.model.trim().toUpperCase());
+  if(S.settings.autoVaryHairBeard && isFM && !ped.comp_hair && !ped.comp_beard){
+    const variants=expandFreemodeVariants(ped,S.settings.variantCount);
+    divPeds.splice(pi,1,...variants);
+    closePed();rerender(c);notify(`Expanded → ${variants.length} hair/beard variants`);return;
+  }
+  closePed();rerender(c);notify('Ped saved');}
+
+// Pick a random element from array
+function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+function expandFreemodeVariants(ped,n=5){
+  const female=ped.model.trim().toUpperCase()==='MP_F_FREEMODE_01';
+  const hairPool=female?HAIR_F:HAIR_M;
+  const baseChance=parseInt(ped.chance)||Math.floor(100/n);
+  const share=Math.floor(baseChance/n);
+  const rem=baseChance-share*(n-1);
+  const used=new Set();
+  return Array.from({length:n},(_,i)=>{
+    // pick unique hair drawable (retry up to 20× for uniqueness)
+    let hair;for(let t=0;t<20;t++){hair=rnd(hairPool);if(!used.has(hair)||used.size>=hairPool.length)break;}
+    used.add(hair);
+    const v=Object.assign({},ped);
+    v.chance=String(i===n-1?rem:share);
+    v.comp_hair=String(hair);
+    v.tex_hair=String(rnd(HAIR_COLORS));
+    if(!female){
+      const hasBeard=Math.random()*100<(S.settings.beardChance??30);
+      const beard=hasBeard?rnd(BEARD_M.filter(b=>b>0)):0;
+      v.comp_beard=String(beard);
+      v.tex_beard=beard===0?'0':String(Math.floor(Math.random()*2));
+    } else {
+      v.comp_beard='0'; v.tex_beard='0';
+    }
+    return v;
+  });}
+
+// ═══════════════════════════════════════════════════════════════════
+// EUP PRESET BROWSER (inside ped modal)
+// ═══════════════════════════════════════════════════════════════════
+function populateEUPFilter(){
+  const cnt=document.getElementById('eupCnt');
+  cnt.textContent=S.eupPresets.length?`(${S.eupPresets.length} presets loaded)`:'(no presets — load .ini above)';
+  if(!S.eupPresets.length)return;
+  const cats=[...new Set(S.eupPresets.map(p=>p.cat2))].sort();
+  const sel=document.getElementById('eupCat2');
+  sel.innerHTML='<option value="">All agencies</option>'+cats.map(c=>`<option value="${X(c)}">${X(c)}</option>`).join('');
+  filterEUP();}
+function filterEUP(){
+  const g=document.getElementById('eupGender').value;
+  const cat2=document.getElementById('eupCat2').value;
+  const srch=document.getElementById('eupSearch').value.toLowerCase();
+  const filtered=S.eupPresets.filter(p=>
+    p.gender===g&&(!cat2||p.cat2===cat2)&&(!srch||p.name.toLowerCase().includes(srch)));
+  const el=document.getElementById('eupList');
+  if(!filtered.length){el.innerHTML='<div class="empty">No presets match filter.</div>';return;}
+  el.innerHTML=filtered.map((p,i)=>`<div class="preset-row" onclick="applyEUP(${i+0})">
+    <span style="flex:1;font-size:12px">${X(p.name)}</span>
+    <span style="font-size:10px;color:var(--t2)">${X(p.cat2)} ${X(p.cat3?'· '+p.cat3:'')}</span>
+  </div>`).join('');
+  // Store filtered indexes
+  el._filtered=filtered;}
+function applyEUP(localIdx){
+  const el=document.getElementById('eupList');
+  const filtered=el._filtered;if(!filtered||!filtered[localIdx])return;
+  const preset=filtered[localIdx];
+  Object.entries(preset.comps).forEach(([k,v])=>{
+    const inp=document.getElementById('pm-'+k);if(inp)inp.value=v;});
+  [...document.querySelectorAll('#eupList .preset-row')].forEach((r,i)=>r.classList.toggle('sel',i===localIdx));
+  notify('Applied: '+preset.name);}
+
+// ═══════════════════════════════════════════════════════════════════
+// VEHICLE IMPORT MODAL
+// ═══════════════════════════════════════════════════════════════════
+function openVImp(ctxB64,idx){const c=dec(ctxB64);vimpCtx={c,idx};
+  document.getElementById('vimpText').value='';['vimpLiv','vimpPax','vimpPax_','vimpCol'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('vimpMo').classList.add('on');}
+function closeVImp(){document.getElementById('vimpMo').classList.remove('on');}
+function applyVImp(){
+  if(!vimpCtx)return;const{c,idx}=vimpCtx;const d=res(c)[idx];
+  const models=document.getElementById('vimpText').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!models.length){closeVImp();return;}
+  const liv=document.getElementById('vimpLiv').value;
+  const pax=document.getElementById('vimpPax').value;
+  const pax_=document.getElementById('vimpPax_').value;
+  const col=document.getElementById('vimpCol').value;
+  const sh=Math.floor(100/models.length);
+  d.vehicles=models.map((m,i)=>({model:m,chance:String(i===models.length-1?100-sh*(models.length-1):sh),
+    color:col,pax,pax_chance:pax_,livery:liv,extraData:null}));
+  closeVImp();rerender(c);notify('Imported '+models.length+' vehicles');}
+
+// ═══════════════════════════════════════════════════════════════════
+// VEHICLE BROWSER PANEL
+// ═══════════════════════════════════════════════════════════════════
+function renderVBFilters(){
+  const agencies=[...new Set(S.vehicles.map(v=>v.agency))].sort().filter(Boolean);
+  const packs=[...new Set(S.vehicles.map(v=>v.pack))].sort().filter(Boolean);
+  const asel=document.getElementById('vbAgency');
+  const psel=document.getElementById('vbPack');
+  asel.innerHTML='<option value="">All Agencies</option>'+agencies.map(a=>`<option>${X(a)}</option>`).join('');
+  psel.innerHTML='<option value="">All Packs</option>'+packs.map(p=>`<option>${X(p)}</option>`).join('');
+  renderVB();}
+function renderVB(){
+  const srch=document.getElementById('vbSearch').value.toLowerCase();
+  const ag=document.getElementById('vbAgency').value;
+  const pk=document.getElementById('vbPack').value;
+  const filtered=S.vehicles.filter(v=>
+    (!srch||v.model.toLowerCase().includes(srch))&&
+    (!ag||v.agency===ag)&&(!pk||v.pack===pk));
+  document.getElementById('vbList').innerHTML=filtered.slice(0,200).map(v=>`
+    <div class="vi" onclick="vbAdd('${X(v.model)}')">
+      <span class="vn">${X(v.model)}</span>
+      <span class="va">${X(v.agency||v.pack||'')}</span>
+    </div>`).join('')+(filtered.length>200?`<div class="empty">…${filtered.length-200} more. Refine search.</div>`:'');}
+function openVB(ctxB64,idx){
+  const c=dec(ctxB64);vbCtx={c,idx};
+  document.getElementById('vbPanel').classList.add('on');
+  if(S.vehicles.length)renderVBFilters();}
+function closeVB(){document.getElementById('vbPanel').classList.remove('on');vbCtx=null;}
+function vbAdd(model){
+  if(!vbCtx)return;
+  const{c,idx}=vbCtx;const d=res(c)[idx];
+  const n=d.vehicles.length;
+  d.vehicles.push({model,chance:'0',color:'',pax:'',pax_chance:'',livery:'',extraData:null});
+  norm(d.vehicles,'chance',n,Math.floor(100/(n+1)));
+  rerender(c);notify('Added '+model);}
+
+// ═══════════════════════════════════════════════════════════════════
+// CUSTOM REGIONS
+// ═══════════════════════════════════════════════════════════════════
+function renderCRPL(){
+  const el=document.getElementById('crPL');if(!S.cr){el.innerHTML='';return;}
+  el.innerHTML='<div class="sg">Patrol Types</div>'+PT.map(pt=>`<div class="si${S.crPT===pt?' on':''}" onclick="selCRPT('${pt}')">${PT_LBL[pt]||pt} <span style="color:var(--t2);font-size:10px">(${(S.cr[pt]||[]).length})</span></div>`).join('');}
+function selCRPT(pt){S.crPT=pt;renderCRPL();renderCRM();}
+function renderCRM(){
+  const el=document.getElementById('crM');if(!S.cr){el.innerHTML='<div class="empty">Load CustomRegions.xml.</div>';return;}
+  const rs=S.cr[S.crPT]||[];
+  let h=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+    <h2 style="font-size:14px;color:var(--a)">Custom Regions › ${PT_LBL[S.crPT]}</h2>
+    <button class="btn sm" onclick="addCR()">+ Add Region</button></div>`;
+  rs.forEach((cr,ci)=>{
+    const ctx=enc({which:'cr',pt:S.crPT,ci});
+    h+=`<div class="card" style="margin-bottom:14px">
+      <div class="ch"><h3 style="color:var(--a)">${X(cr.name)}</h3>
+        <input type="text" value="${X(cr.name)}" onchange="setCRName(${ci},this.value)" style="width:180px">
+        <button class="btn sm D" onclick="delCR(${ci})">Delete</button></div>
+      <div class="cb">
+        <div class="sl">Zones <button class="btn sm" onclick="void 0">+</button></div>
+        <div class="zl">${cr.zones.map((z,zi)=>`<span class="zt">${X(z)}<button onclick="delCRZone(${ci},${zi})">×</button></span>`).join('')}</div>
+        <div style="display:flex;gap:5px;margin-bottom:10px">
+          <input type="text" id="zin-${ci}" list="zlist" placeholder="Zone e.g. AIRP" style="width:140px" onkeydown="if(event.key==='Enter')addCRZone(${ci})">
+          <button class="btn sm" onclick="addCRZone(${ci})">Add Zone</button>
+        </div>
+        <datalist id="zlist">${GTA_ZONES.map(z=>`<option value="${z}">`).join('')}</datalist>
+        <div class="sl">Vehicle Divisions <button class="btn sm" onclick="addDiv('${ctx}')">+ Division</button></div>
+        ${cr.vehicleDivisions.map((_,di)=>divCard(cr.vehicleDivisions,di,enc({which:'cr',pt:S.crPT,ci,i:di}),false)).join('')}
+        ${!cr.vehicleDivisions.length?'<div class="empty">No divisions</div>':''}
+      </div></div>`;});
+  if(!rs.length)h+='<div class="empty">No custom regions. Click "+ Add Region".</div>';
+  el.innerHTML=h;}
+function addCR(){if(!S.cr[S.crPT])S.cr[S.crPT]=[];S.cr[S.crPT].push({name:'New Region',zones:[],vehicleDivisions:[newDiv()]});renderCRPL();renderCRM();}
+function delCR(ci){S.cr[S.crPT].splice(ci,1);renderCRPL();renderCRM();}
+function setCRName(ci,v){S.cr[S.crPT][ci].name=v;}
+function addCRZone(ci){const inp=document.getElementById('zin-'+ci);if(!inp)return;const z=inp.value.trim().toUpperCase();if(!z)return;S.cr[S.crPT][ci].zones.push(z);inp.value='';renderCRM();}
+function delCRZone(ci,zi){S.cr[S.crPT][ci].zones.splice(zi,1);renderCRM();}
+
+// ═══════════════════════════════════════════════════════════════════
+// SPECIAL UNITS
+// ═══════════════════════════════════════════════════════════════════
+function renderSUL(){
+  const el=document.getElementById('suL');if(!S.su){el.innerHTML='';return;}
+  el.innerHTML='<div class="sg">Special Units</div>'+
+    S.su.map((u,i)=>`<div class="si${S.suI===i?' on':''}" onclick="selSU(${i})">${X(u.name)||'Unnamed'}</div>`).join('')+
+    '<div style="padding:8px"><button class="btn sm" onclick="addSU()" style="width:100%">+ Add Unit</button></div>';}
+function selSU(i){S.suI=i;renderSUL();renderSUM();}
+function addSU(){if(!S.su)S.su=[];const u={name:'New Unit',role:'cop',code_2:false,code_3:false,pursuit:false,felony_stop:false,traffic_stop:false,regions:{},customRegions:[]};RG.forEach(r=>u.regions[r]=[]);S.su.push(u);S.suI=S.su.length-1;renderSUL();renderSUM();}
+function renderSUM(){
+  const el=document.getElementById('suM');
+  if(!S.su||S.suI<0){el.innerHTML='<div class="empty">Select a unit.</div>';return;}
+  const u=S.su[S.suI];
+  let h=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <h2 style="font-size:14px;color:var(--a)">${X(u.name)}</h2>
+    <button class="btn sm D" onclick="delSU()">Delete Unit</button></div>
+  <div class="card" style="margin-bottom:10px"><div class="ch"><h3>Unit Properties</h3></div><div class="cb">
+    <div class="fr"><label>Name</label><input type="text" value="${X(u.name)}" onchange="setSUAttr('name',this.value)" style="width:220px"></div>
+    <div class="fr"><label>Role</label><select onchange="setSUAttr('role',this.value)">${['cop','medic','firefighter'].map(r=>`<option value="${r}"${u.role===r?' selected':''}>${r}</option>`).join('')}</select></div>
+    <div class="flags">${['code_2','code_3','pursuit','felony_stop','traffic_stop'].map(f=>`<label class="fl"><input type="checkbox" ${u[f]?'checked':''} onchange="setSUFlag('${f}',this.checked)"> ${f}</label>`).join('')}</div>
+  </div></div>`;
+  RG.forEach(rg=>{const divs=u.regions[rg]||[];const ctx=enc({which:'su-rg',rg});
+    h+=`<div class="card" style="margin-bottom:8px"><div class="ch"><h3>${RG_LBL[rg]}</h3><button class="btn sm" onclick="addDiv('${ctx}')">+ Division</button></div><div class="cb">
+      ${divs.map((_,di)=>divCard(divs,di,enc({which:'su-rg',rg,i:di}),false)).join('')}
+      ${!divs.length?'<div class="empty">No divisions</div>':''}</div></div>`;});
+  h+=`<div class="card"><div class="ch"><h3>Custom Regions</h3><button class="btn sm" onclick="addSUCR()">+ Region</button></div><div class="cb">`;
+  u.customRegions.forEach((cr,ci)=>{const ctx=enc({which:'su-cr',ci});
+    h+=`<div style="border:1px solid var(--border);border-radius:5px;padding:8px;margin-bottom:8px">
+      <div class="fr"><label>Name</label><input type="text" value="${X(cr.name)}" onchange="setSUCRName(${ci},this.value)" style="width:180px"><button class="btn sm D" onclick="delSUCR(${ci})" style="margin-left:auto">Delete</button></div>
+      <div class="sl">Zones</div>
+      <div class="zl">${cr.zones.map((z,zi)=>`<span class="zt">${X(z)}<button onclick="delSUZone(${ci},${zi})">×</button></span>`).join('')}</div>
+      <div style="display:flex;gap:5px;margin-bottom:8px">
+        <input type="text" id="suzi-${ci}" list="zlist" placeholder="Zone" style="width:130px" onkeydown="if(event.key==='Enter')addSUZone(${ci})">
+        <button class="btn sm" onclick="addSUZone(${ci})">Add</button>
+      </div>
+      <div class="sl">Divisions <button class="btn sm" onclick="addDiv('${ctx}')">+ Division</button></div>
+      ${cr.vehicleDivisions.map((_,di)=>divCard(cr.vehicleDivisions,di,enc({which:'su-cr',ci,i:di}),false)).join('')}
+      ${!cr.vehicleDivisions.length?'<div class="empty">No divisions</div>':''}
+    </div>`;});
+  h+=(!u.customRegions.length?'<div class="empty">No custom regions</div>':'')+'</div></div>';
+  el.innerHTML=h;}
+function delSU(){S.su.splice(S.suI,1);S.suI=Math.min(S.suI,S.su.length-1);renderSUL();renderSUM();}
+function setSUAttr(k,v){S.su[S.suI][k]=v;if(k==='name')renderSUL();}
+function setSUFlag(k,v){S.su[S.suI][k]=v;}
+function addSUCR(){S.su[S.suI].customRegions.push({name:'New Region',zones:[],vehicleDivisions:[]});renderSUM();}
+function delSUCR(ci){S.su[S.suI].customRegions.splice(ci,1);renderSUM();}
+function setSUCRName(ci,v){S.su[S.suI].customRegions[ci].name=v;}
+function addSUZone(ci){const inp=document.getElementById('suzi-'+ci);if(!inp)return;const z=inp.value.trim().toUpperCase();if(!z)return;S.su[S.suI].customRegions[ci].zones.push(z);inp.value='';renderSUM();}
+function delSUZone(ci,zi){S.su[S.suI].customRegions[ci].zones.splice(zi,1);renderSUM();}
+
+// ═══════════════════════════════════════════════════════════════════
+// UNIT NAMES
+// ═══════════════════════════════════════════════════════════════════
+function renderUN(){
+  const el=document.getElementById('unM');if(!S.un){el.innerHTML='<div class="empty">Load CustomUnitNames.xml.</div>';return;}
+  let h=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <h2 style="font-size:14px;color:var(--a)">Custom Unit Names</h2>
+    <button class="btn sm" onclick="addNL_()">+ Add Name List</button>
+    <span style="font-size:11px;color:var(--t2)">Use the list ID as name_list_id on a VehicleDivision.</span>
+  </div>`;
+  S.un.forEach((nl,nli)=>{h+=`<div class="unc">
+    <div class="uncH">
+      <span style="font-size:11px;color:var(--t2)">ID:</span>
+      <input type="text" value="${X(nl.id)}" onchange="setNLId(${nli},this.value)" style="width:150px">
+      <button class="btn sm D" onclick="delNL_(${nli})" style="margin-left:auto">Delete</button>
+    </div>
+    <div class="ntags">${nl.names.map((n,ni)=>`<span class="ntag">${X(n)}<button onclick="delName(${nli},${ni})">×</button></span>`).join('')}</div>
+    <div class="ai">
+      <input type="text" id="ni-${nli}" placeholder="Unit name e.g. ADAM-14" onkeydown="if(event.key==='Enter')addName_(${nli})">
+      <button class="btn sm" onclick="addName_(${nli})">Add</button>
+      <button class="btn sm" onclick="bulkNames(${nli})">Bulk…</button>
+    </div>
+  </div>`;});
+  el.innerHTML=h;}
+function addNL_(){if(!S.un)S.un=[];S.un.push({id:'newlist',names:[]});renderUN();}
+function delNL_(i){S.un.splice(i,1);renderUN();}
+function setNLId(i,v){S.un[i].id=v;}
+function addName_(i){const inp=document.getElementById('ni-'+i);if(!inp)return;const n=inp.value.trim();if(!n)return;S.un[i].names.push(n);inp.value='';renderUN();}
+function delName(nli,ni){S.un[nli].names.splice(ni,1);renderUN();}
+function bulkNames(i){const txt=window.prompt('Paste names (one per line):');if(!txt)return;S.un[i].names.push(...txt.split('\n').map(s=>s.trim()).filter(Boolean));renderUN();}
+
+// ═══════════════════════════════════════════════════════════════════
+// SETTINGS MODAL
+// ═══════════════════════════════════════════════════════════════════
+function openSettings(){
+  document.getElementById('sett-autoVary').checked=S.settings.autoVaryHairBeard;
+  document.getElementById('sett-variantCount').value=S.settings.variantCount;
+  document.getElementById('sett-beardChance').value=S.settings.beardChance;
+  document.getElementById('sett-beardPct').textContent=S.settings.beardChance+'%';
+  document.getElementById('sett-varyFace').checked=S.settings.varyFaceOnExport;
+  settPreview();settFacePreview();
+  document.getElementById('settMo').classList.add('on');
+  // highlight button while modal is open
+  document.getElementById('settBtn').classList.toggle('A',S.settings.autoVaryHairBeard);
+}
+function closeSettings(){document.getElementById('settMo').classList.remove('on');}
+function applySettings(){
+  S.settings.autoVaryHairBeard=document.getElementById('sett-autoVary').checked;
+  S.settings.variantCount=Math.max(2,Math.min(10,parseInt(document.getElementById('sett-variantCount').value)||5));
+  S.settings.beardChance=Math.max(0,Math.min(100,parseInt(document.getElementById('sett-beardChance').value)||0));
+  S.settings.varyFaceOnExport=document.getElementById('sett-varyFace').checked;
+  document.getElementById('settBtn').classList.toggle('A',S.settings.autoVaryHairBeard);
+  closeSettings();
+  notify(S.settings.autoVaryHairBeard
+    ?`Auto-vary ON — freemode peds expand to ${S.settings.variantCount} variants`
+    :'Auto-vary OFF');}
+function settPreview(){
+  const on=document.getElementById('sett-autoVary').checked;
+  const n=Math.max(2,Math.min(10,parseInt(document.getElementById('sett-variantCount').value)||5));
+  document.getElementById('sett-nLabel').textContent=n;
+  if(!on){document.getElementById('sett-preview').textContent='Setting is disabled — peds save as-is.';return;}
+  // build a quick illustrative preview
+  const female=false;
+  const hairPool=HAIR_M;const ex=[];const used=new Set();
+  for(let i=0;i<n;i++){
+    let h;for(let t=0;t<20;t++){h=rnd(hairPool);if(!used.has(h)||used.size>=hairPool.length)break;}
+    used.add(h);
+    const bc=Math.max(0,Math.min(100,parseInt(document.getElementById('sett-beardChance').value)||0));
+    const hasBeard=Math.random()*100<bc;
+    const beard=hasBeard?rnd(BEARD_M.filter(b=>b>0)):0;
+    const hc=rnd(HAIR_COLORS);
+    const colorNames=['Black','Dk Brown','Med Brown','Lt Brown','Drk Blonde','Blonde','Lt Blonde','Auburn'];
+    ex.push(`hair=${h}/col=${colorNames[hc]||hc}${beard?'/beard='+beard:''}`);
+  }
+  document.getElementById('sett-preview').innerHTML=
+    `<b style="color:var(--t)">Preview (male, random seed):</b><br>`+ex.map((s,i)=>`<span style="color:var(--a2)">${i+1}.</span> ${s}`).join(' &nbsp;|&nbsp; ');}
+
+function settFacePreview(){
+  const on=document.getElementById('sett-varyFace').checked;
+  const el=document.getElementById('sett-facePreview');
+  if(!on){el.textContent='Setting disabled — comp_face / tex_face export as-is.';return;}
+  const skinNames=['Very fair','Fair','Medium fair','Medium','Olive/tan','Medium dark','Dark','Very dark','Dark brown','Deep dark'];
+  const ex=Array.from({length:5},()=>{
+    const face=rnd(FACE_DRAW_M);const tex=rnd(FACE_TEX);
+    return`face=${face} / ${skinNames[tex]||tex}`;});
+  el.innerHTML=`<b style="color:var(--t)">Example output (re-randomised each export):</b><br>`+
+    ex.map((s,i)=>`<span style="color:var(--a2)">${i+1}.</span> ${s}`).join(' &nbsp;|&nbsp; ');}
+
+// ═══════════════════════════════════════════════════════════════════
+// SESSION SAVE / RESTORE
+// ═══════════════════════════════════════════════════════════════════
+const SESSION_KEY='pr_editor_v1';
+
+function sessionPayload(){
+  return{
+    v:1, saved:new Date().toISOString(),
+    dr:S.dr, cr:S.cr, su:S.su, un:S.un,
+    vehicles:S.vehicles, eupPresets:S.eupPresets,
+    settings:S.settings,
+    nav:{drPT:S.drPT,drRG:S.drRG,crPT:S.crPT,suI:S.suI}
+  };}
+
+function saveSession(){
+  const payload=sessionPayload();
+  const json=JSON.stringify(payload);
+  // persist to localStorage
+  try{localStorage.setItem(SESSION_KEY,json);}
+  catch(e){notify('localStorage full — downloading file only');}
+  // always download a backup .json
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const ts=new Date().toISOString().slice(0,16).replace('T','_').replace(':','-');
+  a.href=url;a.download=`pr-session_${ts}.json`;a.click();
+  URL.revokeObjectURL(url);
+  notify('Session saved + downloaded');}
+
+function applySession(data,source){
+  if(!data||data.v!==1){notify('Unrecognised session file');return;}
+  if(data.nav){S.drPT=data.nav.drPT||S.drPT;S.drRG=data.nav.drRG||S.drRG;
+    S.crPT=data.nav.crPT||S.crPT;S.suI=data.nav.suI??S.suI;}
+  if(data.settings)Object.assign(S.settings,data.settings);
+  document.getElementById('settBtn').classList.toggle('A',S.settings.autoVaryHairBeard);
+  const loaded=[];
+  if(data.dr){S.dr=data.dr;document.getElementById('bDR').classList.add('ok');
+    renderDRPL();renderDRRL();renderDRM();loaded.push('DR');}
+  if(data.cr){S.cr=data.cr;document.getElementById('bCR').classList.add('ok');
+    renderCRPL();renderCRM();loaded.push('CR');}
+  if(data.su){S.su=data.su;document.getElementById('bSU').classList.add('ok');
+    renderSUL();renderSUM();loaded.push('SU');}
+  if(data.un){S.un=data.un;document.getElementById('bUN').classList.add('ok');
+    renderUN();loaded.push('Names');}
+  if(data.vehicles&&data.vehicles.length){S.vehicles=data.vehicles;
+    document.getElementById('bVH').classList.add('ok');renderVBFilters();loaded.push('Vehicles');}
+  if(data.eupPresets&&data.eupPresets.length){S.eupPresets=data.eupPresets;
+    document.getElementById('bEUP').classList.add('ok');loaded.push('EUP');}
+  // show restore banner
+  const d=new Date(data.saved);
+  document.getElementById('restoreTime').textContent=
+    d.toLocaleDateString()+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('restoreFiles').textContent=loaded.length?'— '+loaded.join(', '):'';
+  document.getElementById('restoreBanner').classList.add('on');
+  notify(source==='auto'?'Session auto-restored':'Session loaded');}
+
+function clearSession(){
+  localStorage.removeItem(SESSION_KEY);
+  document.getElementById('restoreBanner').classList.remove('on');
+  notify('Saved session cleared');}
+
+function tryAutoRestore(){
+  try{
+    const raw=localStorage.getItem(SESSION_KEY);
+    if(!raw)return;
+    applySession(JSON.parse(raw),'auto');
+  }catch(e){/* corrupt data — ignore */}}
+
+// Load session from .json file
+document.getElementById('fSESS').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  f.text().then(txt=>{
+    try{applySession(JSON.parse(txt),'file');document.getElementById('bSESS').classList.add('ok');}
+    catch(e){notify('Invalid session file');}
+  });});
+
+// ═══════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════
+renderDRPL();
+tryAutoRestore();
+</script>
+</body>
+</html>
