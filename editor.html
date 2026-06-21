@@ -403,11 +403,11 @@ const PED_PAIRS = [
   ['comp_pants','tex_pants'],['comp_shoes','tex_shoes'],
   ['comp_eyes','tex_eyes'],['comp_tasks','tex_tasks'],['comp_hands','tex_hands']
 ];
-// Prop pairs — hat, glasses (serialized as prop_* attributes on <Ped>)
-const PROP_PAIRS = [['prop_hat','tex_hat'],['prop_glasses','tex_glasses'],['prop_ears','tex_ears'],['prop_watches','tex_watches']];
-const ALL_PED_FIELDS = PED_PAIRS.flat().concat(PROP_PAIRS.flat()).concat(['random_props','rain_outfit','snow_outfit']);
-// Fields excluded when re-applying an EUP preset — face/hair/beard stay untouched
-const EUP_PRESERVE = new Set(['comp_face','tex_face','comp_beard','tex_beard','comp_hair','tex_hair']);
+// Prop pairs — serialized as prop_* attributes on <Ped>
+const PROP_PAIRS = [['prop_hats','tex_hats'],['prop_glasses','tex_glasses'],['prop_ears','tex_ears'],['prop_watches','tex_watches']];
+const ALL_PED_FIELDS = PED_PAIRS.flat().concat(PROP_PAIRS.flat()).concat(['has_mask','random_props','rain_outfit','snow_outfit']);
+// Fields excluded when re-applying an EUP preset — face appearance, beard texture, and hair stay untouched
+const EUP_PRESERVE = new Set(['comp_face','tex_face','comp_hair','tex_hair']);
 const ZONE_INFO = {
   AIRP:'Los Santos Intl Airport', ALAMO:'Alamo Sea', ALTA:'Alta',
   BANHAMC:'Banham Canyon', BANNING:'Banning', BEACH:'Vespucci Beach',
@@ -448,8 +448,8 @@ const GTA_ZONES = Object.keys(ZONE_INFO);
 // EUP field → PR comp/prop field mapping
 const EUP_MAP = {
   Face:        {c:'comp_face',        t:'tex_face'},
-  Beard:       {c:'comp_beard',       t:'tex_beard'},
   Hair:        {c:'comp_hair',        t:'tex_hair'},
+  Mask:        {c:'comp_beard',       t:'tex_beard'},   // EUP "Mask" → comp_beard; triggers has_mask
   Top:         {c:'comp_shirtoverlay',t:'tex_shirtoverlay'},
   UpperSkin:   {c:'comp_shirt',       t:'tex_shirt'},
   Decal:       {c:'comp_decals',      t:'tex_decals'},
@@ -459,7 +459,7 @@ const EUP_MAP = {
   Parachute:   {c:'comp_hands',       t:'tex_hands'},
   Pants:       {c:'comp_pants',       t:'tex_pants'},
   Shoes:       {c:'comp_shoes',       t:'tex_shoes'},
-  Hat:         {p:'prop_hat',         t:'tex_hat'},
+  Hat:         {p:'prop_hats',        t:'tex_hats'},
   Glasses:     {p:'prop_glasses',     t:'tex_glasses'},
   Ear:         {p:'prop_ears',        t:'tex_ears'},
   Watch:       {p:'prop_watches',     t:'tex_watches'},
@@ -481,9 +481,9 @@ const HAIR_COLOR_OPTIONS = [
   {idx:9,name:'Lt Auburn'},{idx:10,name:'Dirty White'},{idx:11,name:'Bleach Blonde'}
 ];
 const SKIN_TONE_NAMES = ['Very Fair','Fair','Med Fair','Medium','Olive','Med Dark','Dark','Very Dark','Dk Brown','Deep Dark'];
-// Beard drawables — array is weighted: 0 (clean) appears 3× more than bearded options
-const BEARD_M = [0,0,0,1,2,4,7,10,17,21];
-// Female peds get beard forced to 0 (clean shaved) always
+// tex_face values that include beard on face (male). 0 = clean-shaven.
+const BEARD_TEX_M = [1,2,3,4,5,6,7,8,9];
+const CLEAN_TEX = [0];
 // Face drawables + skin tone textures for on-export variation
 const FACE_DRAW_M = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19];
 const FACE_DRAW_F = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19];
@@ -539,7 +539,7 @@ function parsePed(el){
   const p={model:el.textContent.trim(), chance:el.getAttribute('chance')||'100'};
   ALL_PED_FIELDS.forEach(k=>{
     const v=el.getAttribute(k);
-    if(v!==null) p[k]=k==='random_props'||k==='rain_outfit'||k==='snow_outfit'?(v==='true'):v;
+    if(v!==null) p[k]=['has_mask','random_props','rain_outfit','snow_outfit'].includes(k)?(v==='true'):v;
   });
   return p;
 }
@@ -646,6 +646,8 @@ function sPed(p){
   let a=`chance="${X(pp.chance)}"`;
   PED_PAIRS.flat().forEach(k=>{if(pp[k]!==undefined&&pp[k]!=='')a+=` ${k}="${X(pp[k])}"`;});
   PROP_PAIRS.flat().forEach(k=>{if(pp[k]!==undefined&&pp[k]!=='')a+=` ${k}="${X(pp[k])}"`;});
+  const _mask=pp.comp_beard!==undefined&&pp.comp_beard!==''&&pp.comp_beard!=='0'&&pp.comp_beard!=='-1';
+  if(_mask||pp.has_mask)a+=' has_mask="true"';
   if(pp.random_props)a+=' random_props="true"';if(pp.rain_outfit)a+=' rain_outfit="true"';if(pp.snow_outfit)a+=' snow_outfit="true"';
   return`<Ped ${a}>${X(pp.model)}</Ped>`;}
 function sVeh(v){
@@ -1010,7 +1012,7 @@ function savePed(){
     if(v!==''&&v!==null&&v!==undefined)ped[k]=v;else delete ped[k];});
   // Auto-vary hair/beard when setting is on and fields are blank
   const isFM=FREEMODE_MODELS.includes(ped.model.trim().toUpperCase());
-  if(S.settings.autoVaryHairBeard && isFM && !ped.comp_hair && !ped.comp_beard){
+  if(S.settings.autoVaryHairBeard && isFM && !ped.comp_hair){
     const variants=expandFreemodeVariants(ped,S.settings.variantCount);
     divPeds.splice(pi,1,...variants);
     closePed();rerender(c);notify(`Expanded → ${variants.length} hair/beard variants`);return;
@@ -1037,11 +1039,9 @@ function expandFreemodeVariants(ped,n=5){
     v.tex_hair=String(rnd(S.settings.allowedHairColors.length?S.settings.allowedHairColors:HAIR_COLORS));
     if(!female){
       const hasBeard=Math.random()*100<(S.settings.beardChance??30);
-      const beard=hasBeard?rnd(BEARD_M.filter(b=>b>0)):0;
-      v.comp_beard=String(beard);
-      v.tex_beard=beard===0?'0':String(Math.floor(Math.random()*2));
+      v.tex_face=String(rnd(hasBeard?BEARD_TEX_M:CLEAN_TEX));
     } else {
-      v.comp_beard='0'; v.tex_beard='0';
+      v.tex_face=String(rnd(CLEAN_TEX));
     }
     return v;
   });}
@@ -1311,10 +1311,10 @@ function settPreview(){
     used.add(h);
     const bc=Math.max(0,Math.min(100,parseInt(document.getElementById('sett-beardChance').value)||0));
     const hasBeard=Math.random()*100<bc;
-    const beard=hasBeard?rnd(BEARD_M.filter(b=>b>0)):0;
+    const beardTex=rnd(hasBeard?BEARD_TEX_M:CLEAN_TEX);
     const hc=rnd(HAIR_COLORS);
     const colorNames=['Black','Dk Brown','Med Brown','Lt Brown','Drk Blonde','Blonde','Lt Blonde','Auburn'];
-    ex.push(`hair=${h}/col=${colorNames[hc]||hc}${beard?'/beard='+beard:''}`);
+    ex.push(`hair=${h}/col=${colorNames[hc]||hc}/beard-tex=${beardTex}`);
   }
   document.getElementById('sett-preview').innerHTML=
     `<b style="color:var(--t)">Preview (male, random seed):</b><br>`+ex.map((s,i)=>`<span style="color:var(--a2)">${i+1}.</span> ${s}`).join(' &nbsp;|&nbsp; ');}
@@ -1395,10 +1395,8 @@ function randomizeAllHair(){
     p.tex_hair=String(rnd(colors));
     if(!female){
       const hasBeard=Math.random()*100<(S.settings.beardChance??30);
-      const beard=hasBeard?rnd(BEARD_M.filter(b=>b>0)):0;
-      p.comp_beard=String(beard);
-      p.tex_beard=beard===0?'0':String(Math.floor(Math.random()*2));
-    }else{p.comp_beard='0';p.tex_beard='0';}
+      p.tex_face=String(rnd(hasBeard?BEARD_TEX_M:CLEAN_TEX));
+    }else{p.tex_face=String(rnd(CLEAN_TEX));}
     n++;
   });
   _rerenderAll();
